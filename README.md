@@ -9,7 +9,9 @@ yarn install
 
 ### Environment:
 Copy `.env.dist` to `.env` and then fill `username/password`
-
+```
+driver/DontDelete/config_rp_redmine.txt
+```
 
 ### Generate the report file:
 ```

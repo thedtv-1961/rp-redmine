@@ -3,13 +3,12 @@ require('dotenv').config();
 const MyScrape = require('./MyScrape');
 
 const myScrape = new MyScrape();
-const baseURL = '';
+const baseURL = process.env.BASE_URL;
 const time = {
     today: 't',
     yesterday: 'ld',
 }
-const projects = [
-];
+const projects = process.env.PROJECTS.split(',');
 
 const handleOnProject = async (page, projectName, paramInput) => {
     const url = `/projects/${projectName}/time_entries?utf8=✓&set_filter=1&sort=spent_on:desc&f[]=spent_on&op[spent_on]=${paramInput}&f[]=user_id&op[user_id]==&v[user_id][]=me&f[]=&c[]=spent_on&c[]=user&c[]=activity&c[]=issue&c[]=comments&c[]=hours&c[]=issue.status&group_by=&t[]=hours&t[]=`;
@@ -76,6 +75,16 @@ const handleProcess = async (page, paramInput) => {
     return list;
 }
 
+const convertStatus = (issueStatus = '') => {
+    switch (issueStatus) {
+        case 'Resolved':
+        case 'Closed':
+            return 'Done';
+        default:
+            return issueStatus;
+    }
+}
+
 const reportResult = async (items) => {
     if (!items || items.length === 0) {
         console.log('No data to report!');
@@ -89,11 +98,29 @@ const reportResult = async (items) => {
     let spendTime = 0;
 
     items.forEach((item) => {
-        tasks += `<li><a href="${item.link}">${item.title}</a> -> (${item.status})</li>`;
+        const urlExtracts = item.link.split('/');
+        const issueId = urlExtracts[urlExtracts.length - 1];
+        tasks += `<li><a href="${item.link}">#${issueId}</a> ${item.title} -> ${convertStatus(item.status)}</li>`;
         spendTime += item.time;
     });
 
-    const reportTemplate = ``;
+    const reportTemplate = `Em gửi report ạ:
+<ul>
+    <li>Hôm nay:</li>
+    <li style="list-style-type:none">
+        <ul>
+            ${tasks}
+        </ul>
+    </li>
+    <li>Ngày mai:</li>
+    <li style="list-style-type:none">
+        <ul>
+            <li> </li>
+        </ul>
+    </li>
+    <li>On Schedule: YES</li>
+</ul>
+    `;
 
     console.log('Your spend time today =', spendTime);
     console.log('Your report file at =', __dirname + `/reports/${fileName}`);
